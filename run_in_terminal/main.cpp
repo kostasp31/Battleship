@@ -28,6 +28,8 @@ void print_grid(char **my, char **enemy, int dim) {
             else {
                 if (j%4 == 0)
                     cout << '|';
+                else if (j%2 == 0 && j%4 != 0)
+                    cout << my[i/2][j/4]; //Test
                 else    
                     cout << ' ';
             }
@@ -63,5 +65,8 @@ int main(int argc, char *argv[]) {
             my_fleet[i][j] = ' ';
         }
     }
+    my_fleet[2][5] = 'O';
+    my_fleet[1][3] = 'X';
+
     print_grid(my_fleet, enemy_fleet, dim);
 }
