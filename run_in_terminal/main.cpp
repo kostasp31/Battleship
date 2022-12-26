@@ -158,36 +158,136 @@ class game {
             cout << '+' << endl;
         }
         void setShip(void) {
+            bool repeat = false;
+            int st_x, st_y, end_x, end_y;
+            int i,j;
             string inp;
             string delimiter = "-";
             string token0, token1;
             
-            cout << "Set the location of the aircraft carrier (5x1): ";
-            cin >> inp;
-            token0 = inp.substr(0, inp.find(delimiter));
-            //cout << "Token0: " << token0 << endl;
-            inp.erase(0, 3);
-            token1 = inp;
-            //cout << "Token1: " << token1 << endl;  
+            do {
+                repeat = false;
+                cout << "Set the location of the aircraft carrier (5x1): ";
+                cin >> inp;
+                token0 = inp.substr(0, inp.find(delimiter));
+                cout << "Token0: " << token0 << endl;
+                inp.erase(0, 3);
+                token1 = inp;
+                cout << "Token1: " << token1 << endl;  
 
-            int st_x, st_y, end_x, end_y;
-            st_y = token0[0] -  97;
-            st_x = token0[1] - 49;
-            end_y = token1[0] - 97;
-            end_x = token1[1] - 49;
+                st_x = token0[0] -  97;
+                st_y = token0[1] - 49;
+                end_x = token1[0] - 97;
+                end_y = token1[1] - 49;
 
-            //cout << "Start x,y: " << st_x << ", " << st_y << endl;
-            //cout << "End x,y: " << end_x << ", " << end_y << endl;
+                cout << "Start x,y: " << st_x << ", " << st_y << endl;
+                cout << "End x,y: " << end_x << ", " << end_y << endl;
+                if (st_x == end_x) {
+                    if (end_y - st_y != 4) {
+                        cout << "Aircraft carrier is 5 sqares long\n";
+                        repeat = true;
+                    }
+                }
+                else if (st_y == end_y) {
+                    if (end_x - st_x != 4) {
+                        cout << "Aircraft carrier is 5 sqares long\n";
+                        repeat = true;
+                    }
+                }
+            } while (repeat);
             if (st_y == end_y) {
-                for (int i=st_x; i<end_x - st_x + 1; i++) {
-                    my[i][st_y] = 'A';
-                }
+                for (i=st_x; i<=end_x; i++)
+                    my[st_y][i] = 'A';
             }
-            if (st_x == end_x) {
-                for (int i=st_y; i<end_y - st_y + 1; i++) {
-                    my[st_x][i] = 'A';
-                }
+            else if (st_x == end_x) {
+                for (i=st_y; i<=end_y; i++)
+                    my[i][st_x] = 'A';
             }
+
+            do {
+                repeat = false;
+                cout << "Set the location of the battleship (4x1): ";
+                cin >> inp;
+                token0 = inp.substr(0, inp.find(delimiter));
+                cout << "Token0: " << token0 << endl;
+                inp.erase(0, 3);
+                token1 = inp;
+                cout << "Token1: " << token1 << endl;  
+
+                st_x = token0[0] -  97;
+                st_y = token0[1] - 49;
+                end_x = token1[0] - 97;
+                end_y = token1[1] - 49;
+
+                cout << "Start x,y: " << st_x << ", " << st_y << endl;
+                cout << "End x,y: " << end_x << ", " << end_y << endl;
+                if (st_x == end_x) {
+                    if (end_y - st_y != 3) {
+                        cout << "Battleship is 4 sqares long\n";
+                        repeat = true;
+                    }
+                }
+                else if (st_y == end_y) {
+                    if (end_x - st_x != 3) {
+                        cout << "Battleship is 4 sqares long\n";
+                        repeat = true;
+                    }
+                }
+            } while (repeat);
+            
+
+            if (st_y == end_y) {
+                for (i=st_x; i<=end_x; i++)
+                    my[st_y][i] = 'B';
+            }
+            else if (st_x == end_x) {
+                for (i=st_y; i<=end_y; i++)
+                    my[i][st_x] = 'B';
+            }
+
+            do {
+                repeat = false;
+                cout << "Set the location of the cruiser (3x1): ";
+                cin >> inp;
+                token0 = inp.substr(0, inp.find(delimiter));
+                cout << "Token0: " << token0 << endl;
+                inp.erase(0, 3);
+                token1 = inp;
+                cout << "Token1: " << token1 << endl;  
+
+                st_x = token0[0] -  97;
+                st_y = token0[1] - 49;
+                end_x = token1[0] - 97;
+                end_y = token1[1] - 49;
+
+                cout << "Start x,y: " << st_x << ", " << st_y << endl;
+                cout << "End x,y: " << end_x << ", " << end_y << endl;
+                if (st_x == end_x) {
+                    if (end_y - st_y != 2) {
+                        cout << "Cruiser is 3 sqares long\n";
+                        repeat = true;
+                    }
+                }
+                else if (st_y == end_y) {
+                    if (end_x - st_x != 2) {
+                        cout << "Cruiser is 3 sqares long\n";
+                        repeat = true;
+                    }
+                }
+            } while (repeat);
+
+            int v;
+            cin >> v;
+
+            if (st_y == end_y) {
+                for (i=st_x; i<=end_x; i++)
+                    my[st_y][i] = 'C';
+            }
+            else if (st_x == end_x) {
+                for (i=st_y; i<=end_y; i++)
+                    my[i][st_x] = 'C';
+            }
+
         }
         game(int dm) : dim(dm) {};
         ~game(void) {
@@ -209,9 +309,9 @@ int main(void) {
     cin >> dim;
     game gm(10);
     gm.newGame();
-    gm.printBoard();
+    //gm.printBoard();
     gm.setShip();
     gm.printBoard();
 
-    Sleep(10000);
+    Sleep(100000);
 }
