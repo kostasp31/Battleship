@@ -125,6 +125,35 @@ void placeShip(char** tab, string name, int length) {
 
 }
 
+void placeEnemy(char** enemy, int ship_n, char symbol) {    //Should make this so that ship dont touch each other
+    bool repeat = false;
+    do {
+        int rd, row_col, cell, i;
+        repeat = false;
+        rd = rand()%2;
+        row_col = rand()%10; //0-9
+        cell = rand()%(ship_n+1); //0-ship_n
+        if (rd == 0) { //Horizontal
+            for (i = cell; i<cell+(ship_n); i++) {
+                if (enemy[row_col][i] != ' ')
+                    repeat = true;
+            }
+            if (repeat) continue;
+            for (i = cell; i<cell+(ship_n); i++)
+                enemy[row_col][i] = symbol;                 
+        }
+        else {  //Vertical
+            for (i = cell; i<cell+(ship_n); i++) {
+                if (enemy[i][row_col] != ' ')
+                    repeat = true;
+            }
+            if (repeat) continue;
+            for (i = cell; i<cell+(ship_n); i++)
+                enemy[i][row_col] = symbol;   
+        }
+    } while (repeat);
+}
+
 class game {
     private:
         char** my;
@@ -181,23 +210,28 @@ class game {
             placeShip(my, "Submarine", 3);
             printMyBoard();
             placeShip(my, "Destroyer", 2);
+            /*placeEnemy(my, 5, 'A');
+            placeEnemy(my, 4, 'B');
+            placeEnemy(my, 3, 'C');
+            placeEnemy(my, 3, 'D');
+            placeEnemy(my, 2, 'E');*/
 
         }
         void setEnemy(void) {
             srand(time(NULL));
-            int rd, row_col;
-            rd = rand()%2;
-            if (rd == 0) { //Horizontal
-                row_col = rand()%10; //0-9
             /*Επιλέγω τυχαία είτε στήλες είτε γραμμές (rd)
             Έπειτα, επιλέγω μια τυχαία στήλη/γραμμή (row_col)
             και ένα τυχαίο κελί αυτής της στήλης/γραμμής
             το οποίο απέχει από το όριο του πίνακα <= το μήκος του πλοίου
             και τοποθετώ το πλοίο από το κελί αυτό και προς την κατεύθυνση 
             (οριζόντια ή κάθετη) που επιλέχθηκε τυχαία στην αρχή*/
-            
-            }
-        }
+
+            placeEnemy(enemy, 5, 'A');
+            placeEnemy(enemy, 4, 'B');
+            placeEnemy(enemy, 3, 'C');
+            placeEnemy(enemy, 3, 'D');
+            placeEnemy(enemy, 2, 'E');
+        } 
 
         game(int dm) : dim(dm) {};
         ~game(void) {
@@ -217,5 +251,8 @@ int main(void) {
     gm.setShip();
     gm.printAllBoards();
 
-    Sleep(100000);
+    gm.setEnemy();
+    gm.printAllBoards();
+
+    Sleep(10000);
 }
