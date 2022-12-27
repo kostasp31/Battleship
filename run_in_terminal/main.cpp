@@ -5,7 +5,7 @@
 
 using namespace std;
 
-void print_grid(char **my, char **enemy, int dim) {
+void print_grid(char **my, int dim) {
     int i,j;
     char ch = 'A';
     cout << "   ";
@@ -59,7 +59,10 @@ void placeShip(char** tab, string name, int length) {
         cin >> inp;
         token0 = inp.substr(0, inp.find(delimiter));
         //cout << "Token0: " << token0 << endl;
-        inp.erase(0, 3);
+        if (inp.length() == 7)
+            inp.erase(0, 4);
+        else 
+            inp.erase(0,3);
         token1 = inp;
         //cout << "Token1: " << token1 << endl;  
 
@@ -68,11 +71,14 @@ void placeShip(char** tab, string name, int length) {
         end_y = token1[0] - 97;
         end_x = token1[1] - 49;
 
+        if (token0.length() == 3)
+            st_x = 9;
         if (token1.length() == 3)
             end_x = 9;
 
-        //cout << "Start x,y: " << st_x << ", " << st_y << endl;
-        //cout << "End x,y: " << end_x << ", " << end_y << endl;
+        /*cout << "Start x,y: " << st_x << ", " << st_y << endl;
+        cout << "End x,y: " << end_x << ", " << end_y << endl;
+        Sleep(10000);*/
         if (st_x == end_x) {
             if (end_y - st_y != length - 1) {
                 cout << name << " is " << length << " sqares long\n";
@@ -84,6 +90,11 @@ void placeShip(char** tab, string name, int length) {
                 cout << name << " is " << length << " sqares long\n";
                 repeat = true;
             }
+        }
+        else {
+            cout << "Diagonal ships aren\'t allowed\n";
+            repeat = true;
+            continue;
         }
 
         if (st_y == end_y) {
@@ -138,12 +149,18 @@ class game {
             }
         }
 
-        void printBoard(void) {
+        void printMyBoard(void) {
             system("CLS");
             cout << "My fleet\n\n";
-            print_grid(my, NULL, dim);
+            print_grid(my, dim);
+        }
+
+        void printAllBoards(void) {
+            system("CLS");
+            cout << "My fleet\n\n";
+            print_grid(my, dim);
             cout << "\n\nOpponents\' fleet\n\n";
-            print_grid(enemy, NULL, dim);
+            print_grid(enemy, dim);
         }
 
         void setShip(void) {
@@ -154,17 +171,34 @@ class game {
             string delimiter = "-";
             string token0, token1;
             
+            printMyBoard();
             placeShip(my, "Aircraft Carrier", 5);
-            printBoard();
+            printMyBoard();
             placeShip(my, "Battleship", 4);
-            printBoard();
+            printMyBoard();
             placeShip(my, "Cruiser", 3);
-            printBoard();
+            printMyBoard();
             placeShip(my, "Submarine", 3);
-            printBoard();
+            printMyBoard();
             placeShip(my, "Destroyer", 2);
 
         }
+        void setEnemy(void) {
+            srand(time(NULL));
+            int rd, row_col;
+            rd = rand()%2;
+            if (rd == 0) { //Horizontal
+                row_col = rand()%10; //0-9
+            /*Επιλέγω τυχαία είτε στήλες είτε γραμμές (rd)
+            Έπειτα, επιλέγω μια τυχαία στήλη/γραμμή (row_col)
+            και ένα τυχαίο κελί αυτής της στήλης/γραμμής
+            το οποίο απέχει από το όριο του πίνακα <= το μήκος του πλοίου
+            και τοποθετώ το πλοίο από το κελί αυτό και προς την κατεύθυνση 
+            (οριζόντια ή κάθετη) που επιλέχθηκε τυχαία στην αρχή*/
+            
+            }
+        }
+
         game(int dm) : dim(dm) {};
         ~game(void) {
             int i;
@@ -178,16 +212,10 @@ class game {
 };
 
 int main(void) {
-    int i,j,dim;
-    char **my_fleet, **enemy_fleet;
-
-    cout << "Dimension of table: (Def is 10): ";
-    cin >> dim;
     game gm(10);
     gm.newGame();
-    //gm.printBoard();
     gm.setShip();
-    gm.printBoard();
+    gm.printAllBoards();
 
     Sleep(100000);
 }
