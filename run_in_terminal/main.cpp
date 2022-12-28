@@ -50,6 +50,7 @@ void print_grid(char **my, int dim) {
 }
 
 void placeShip(char** tab, string name, int length) {
+    //srand(time(NULL));
     string inp, delimiter = "-", token0, token1;
     int st_x, st_y, end_x, end_y, i;
     bool repeat;
@@ -157,8 +158,16 @@ void placeEnemy(char** enemy, int ship_n, char symbol) {    //Should make this s
 class game {
     private:
         char** my;
-        char ** enemy;
+        char** enemy;
+        char** i_fire;
+        char** enemy_fires;
         int dim;
+        bool winner = 0;
+        int air_h = 5;
+        int battl_h = 4;
+        int crui_h = 3;
+        int sub_h = 2;
+        int dest_h = 2;
     public:
         void newGame(void) {
             int i, j;
@@ -166,14 +175,20 @@ class game {
                 dim = 10;
             my = new char*[dim];
             enemy = new char*[dim];
+            i_fire = new char*[dim];
+            enemy_fires = new char*[dim];
             for (i=0; i<dim; i++) {
                 my[i] = new char[dim];
                 enemy[i] = new char[dim];
+                i_fire[i] = new char[dim];
+                enemy_fires[i] = new char[dim];
             }
             for (i=0; i<dim; i++) {
                 for (j=0; j<dim; j++) {
                     my[i][j] = ' ';
                     enemy[i][j] = ' ';
+                    i_fire[i][j] = ' ';
+                    enemy_fires[i][j] = ' ';
                 }
             }
         }
@@ -188,8 +203,12 @@ class game {
             system("CLS");
             cout << "My fleet\n\n";
             print_grid(my, dim);
-            cout << "\n\nOpponents\' fleet\n\n";
-            print_grid(enemy, dim);
+            /*cout << "\n\nOpponents\' fleet\n\n";
+            print_grid(enemy, dim);*/
+            cout << "\n\nI_Fire\n\n";
+            print_grid(i_fire, dim);
+            /*cout << "\n\nEnemy_Fires\n\n";
+            print_grid(enemy_fires, dim);*/
         }
 
         void setShip(void) {
@@ -199,8 +218,7 @@ class game {
             string inp;
             string delimiter = "-";
             string token0, token1;
-            
-            printMyBoard();
+            /*printMyBoard();
             placeShip(my, "Aircraft Carrier", 5);
             printMyBoard();
             placeShip(my, "Battleship", 4);
@@ -209,12 +227,12 @@ class game {
             printMyBoard();
             placeShip(my, "Submarine", 3);
             printMyBoard();
-            placeShip(my, "Destroyer", 2);
-            /*placeEnemy(my, 5, 'A');
+            placeShip(my, "Destroyer", 2);*/
+            placeEnemy(my, 5, 'A');
             placeEnemy(my, 4, 'B');
             placeEnemy(my, 3, 'C');
             placeEnemy(my, 3, 'D');
-            placeEnemy(my, 2, 'E');*/
+            placeEnemy(my, 2, 'E');
 
         }
         void setEnemy(void) {
@@ -232,6 +250,39 @@ class game {
             placeEnemy(enemy, 3, 'D');
             placeEnemy(enemy, 2, 'E');
         } 
+        void setWinner(void) {
+            this->winner = true;
+        }
+
+        int fire(int x, int y) {    //returns 0 if succeed, 1 if not
+            if (enemy[x][y] != ' ')
+                i_fire[x][y] = 'X';
+            else 
+                i_fire[x][y] = '*';
+            return 0;
+        }
+
+        int enemy_fire(void) {     //returns 0 if succeed, 1 if not
+            srand(time(NULL));
+            int x = rand()%10; //0-9
+            int y = rand()%10; //0-9
+            if (my[x][y] == '*' || my[x][y] == 'X')
+                return 1;
+            if (my[x][y] != ' ') {
+                enemy_fires[x][y] = 'X';
+                my[x][y] = 'X';
+                return 0;
+            }
+            else {
+                enemy_fires[x][y] = '*';
+                my[x][y] = '*';
+                return 0;
+            }
+        }
+
+        bool isaWinner(void)const {
+            return this->winner;
+        }
 
         game(int dm) : dim(dm) {};
         ~game(void) {
@@ -250,9 +301,19 @@ int main(void) {
     gm.newGame();
     gm.setShip();
     gm.printAllBoards();
-
     gm.setEnemy();
     gm.printAllBoards();
-
+    
+    string inp;
+    int x, y;
+    while (!gm.isaWinner()) {
+        cin >> inp;
+        x = inp[0] - 97;
+        y = inp[1] - 49;
+        if (inp.length() == 3) y = 9;
+        gm.fire(x, y);
+        while (gm.enemy_fire()) {};
+        gm.printAllBoards();
+    }
     Sleep(10000);
 }
