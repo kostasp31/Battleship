@@ -49,7 +49,7 @@ void print_grid(char **my, int dim) {
     cout << '+' << endl;
 }
 
-void placeShip(char** tab, string name, int length) {
+void placeShip(char** tab, string name, int length, char symbol) {
     //srand(time(NULL));
     string inp, delimiter = "-", token0, token1;
     int st_x, st_y, end_x, end_y, i;
@@ -108,7 +108,7 @@ void placeShip(char** tab, string name, int length) {
             }
             if (repeat) continue;
             for (i=st_x; i<=end_x; i++)
-                tab[st_y][i] = 70-length;
+                tab[st_y][i] = symbol;
         }
         else if (st_x == end_x) {
             for (i=st_y; i<=end_y; i++) {
@@ -119,7 +119,7 @@ void placeShip(char** tab, string name, int length) {
             }
             if (repeat) continue;
             for (i=st_y; i<=end_y; i++)
-                tab[i][st_x] = 70-length;
+                tab[i][st_x] = symbol;
         }
     } while (repeat);
     
@@ -155,6 +155,45 @@ void placeEnemy(char** enemy, int ship_n, char symbol) {    //Should make this s
     } while (repeat);
 }
 
+class fleet {
+    public:
+        int air_h = 5;
+        int battl_h = 4;
+        int crui_h = 3;
+        int sub_h = 3;
+        int dest_h = 2;   
+        fleet operator--(int which) {
+            switch (which) {
+                case 1:
+                    air_h--;
+                    break;
+                case 2:
+                    battl_h--;
+                    break;
+                case 3:
+                    crui_h--;
+                    break;
+                case 4:
+                    sub_h--;
+                    break;
+                case 5:
+                    dest_h--;
+                    break;
+                default:
+                    break;
+            }
+        }
+        void printH(void) {
+            cout << air_h << endl << battl_h << endl << crui_h << endl << sub_h << endl << dest_h << endl;
+        } 
+        bool allZero(void)const {
+            if (!air_h && !battl_h && !crui_h && !sub_h && !dest_h)
+                return true;
+            else 
+                return false;
+        }
+};
+
 class game {
     private:
         char** my;
@@ -163,11 +202,9 @@ class game {
         char** enemy_fires;
         int dim;
         bool winner = 0;
-        int air_h = 5;
-        int battl_h = 4;
-        int crui_h = 3;
-        int sub_h = 2;
-        int dest_h = 2;
+        fleet myFleet;
+        fleet enemyFleet;
+
     public:
         void newGame(void) {
             int i, j;
@@ -191,6 +228,7 @@ class game {
                     enemy_fires[i][j] = ' ';
                 }
             }
+            //fleet myFleet = new fleet[];
         }
 
         void printMyBoard(void) {
@@ -219,15 +257,15 @@ class game {
             string delimiter = "-";
             string token0, token1;
             /*printMyBoard();
-            placeShip(my, "Aircraft Carrier", 5);
+            placeShip(my, "Aircraft Carrier", 5, 'A');
             printMyBoard();
-            placeShip(my, "Battleship", 4);
+            placeShip(my, "Battleship", 4, 'B');
             printMyBoard();
-            placeShip(my, "Cruiser", 3);
+            placeShip(my, "Cruiser", 3, 'C');
             printMyBoard();
-            placeShip(my, "Submarine", 3);
+            placeShip(my, "Submarine", 3, 'D');
             printMyBoard();
-            placeShip(my, "Destroyer", 2);*/
+            placeShip(my, "Destroyer", 2, 'E');*/
             placeEnemy(my, 5, 'A');
             placeEnemy(my, 4, 'B');
             placeEnemy(my, 3, 'C');
@@ -255,8 +293,28 @@ class game {
         }
 
         int fire(int x, int y) {    //returns 0 if succeed, 1 if not
-            if (enemy[x][y] != ' ')
+            if (enemy[x][y] != ' ') {
+                switch (enemy[x][y]) {
+                case 'A':
+                    enemyFleet.operator--(1);
+                    break;
+                case 'B':
+                    enemyFleet.operator--(2);
+                    break;
+                case 'C':
+                    enemyFleet.operator--(3);
+                    break;
+                case 'D':
+                    enemyFleet.operator--(4);
+                    break;
+                case 'E':
+                    enemyFleet.operator--(5);
+                    break;
+                default:
+                    break;
+                }
                 i_fire[x][y] = 'X';
+            }
             else 
                 i_fire[x][y] = '*';
             return 0;
@@ -269,6 +327,25 @@ class game {
             if (my[x][y] == '*' || my[x][y] == 'X')
                 return 1;
             if (my[x][y] != ' ') {
+                switch (my[x][y]) {
+                case 'A':
+                    myFleet.operator--(1);
+                    break;
+                case 'B':
+                    myFleet.operator--(2);
+                    break;
+                case 'C':
+                    myFleet.operator--(3);
+                    break;
+                case 'D':
+                    myFleet.operator--(4);
+                    break;
+                case 'E':
+                    myFleet.operator--(5);
+                    break;
+                default:
+                    break;
+                }
                 enemy_fires[x][y] = 'X';
                 my[x][y] = 'X';
                 return 0;
@@ -278,6 +355,22 @@ class game {
                 my[x][y] = '*';
                 return 0;
             }
+        }
+
+        void printHealth(void) {
+            cout << "My health:\n";
+            myFleet.printH();
+            cout << "Enemy health:\n";
+            enemyFleet.printH();
+        }
+
+        int checkWinner(void)const {
+            if (myFleet.allZero())
+                return 1;
+            if (enemyFleet.allZero())
+                return 2;
+            else    
+                return 0;
         }
 
         bool isaWinner(void)const {
@@ -306,14 +399,26 @@ int main(void) {
     
     string inp;
     int x, y;
+    int W = 1;
     while (!gm.isaWinner()) {
         cin >> inp;
         x = inp[0] - 97;
         y = inp[1] - 49;
+        if ((inp[0]-113) == 0) break; //Press q to quit
         if (inp.length() == 3) y = 9;
         gm.fire(x, y);
         while (gm.enemy_fire()) {};
         gm.printAllBoards();
+        W = gm.checkWinner();
+        if (W != 0) {
+            system("CLS");
+            if (W == 1)
+                cout << "Enemy Wins!\n";
+            if (W == 2)
+                cout << "You Win!\n";
+            Sleep(3000);
+            break;
+        }
+        //gm.printHealth();
     }
-    Sleep(10000);
 }
