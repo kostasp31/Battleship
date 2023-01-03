@@ -8,6 +8,7 @@ using namespace std;
 void print_grid(char **my, int dim) {
     int i,j;
     char ch = 'A';
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);  //Handle for terminal colors
     cout << "   ";
     for (i=0; i<dim; i++) {
         cout << "   " << i+1;
@@ -30,8 +31,25 @@ void print_grid(char **my, int dim) {
             else {
                 if (j%4 == 0)
                     cout << '|';
-                else if (j%2 == 0 && j%4 != 0)
-                    cout << my[i/2][j/4]; //Test
+                else if (j%2 == 0 && j%4 != 0) {
+                    switch (my[i/2][j/4]) {
+                    case 'X':
+                        SetConsoleTextAttribute(hConsole, 12);
+                        cout << my[i/2][j/4]; //Test
+                        SetConsoleTextAttribute(hConsole, 7);
+                        break;
+                    case '*':
+                        SetConsoleTextAttribute(hConsole, 9);
+                        cout << my[i/2][j/4]; //Test
+                        SetConsoleTextAttribute(hConsole, 7);     
+                        break;               
+                    default:
+                        SetConsoleTextAttribute(hConsole, 10);
+                        cout << my[i/2][j/4]; //Test
+                        SetConsoleTextAttribute(hConsole, 7);                      
+                        break;
+                    }
+                }
                 else    
                     cout << ' ';
             }
@@ -379,13 +397,16 @@ class game {
 
         game(int dm) : dim(dm) {};
         ~game(void) {
-            int i;
-            for (i=0; i<dim; i++) {
+            for (int i=0; i<dim; i++) {
 		        delete my[i];
                 delete enemy[i];
+                delete i_fire[i];
+                delete enemy_fires[i];
             }
 	        delete[] my;
             delete[] enemy;
+            delete[] i_fire;
+            delete[] enemy_fires;
         }
 };
 
