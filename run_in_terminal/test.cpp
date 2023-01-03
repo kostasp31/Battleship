@@ -4,7 +4,7 @@
 #include <Windows.h>
 using namespace std;
 
-int main(void) {
+/*int main(void) {
     string inp;
     string delimiter = "-";
     string token0, token1;
@@ -36,6 +36,9 @@ int main(void) {
 
     Sleep(100000);
     return 0;
+}*/
+int max(int a, int b) {
+    return a>b;
 }
 
 // a1-a4
