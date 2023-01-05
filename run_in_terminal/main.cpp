@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <cstdlib>
 #include <Windows.h>
+#include <fstream>
 
 using namespace std;
 
@@ -200,6 +201,7 @@ class fleet {
                 default:
                     break;
             }
+            return *this;
         }
         void printH(void) {
             cout << air_h << endl << battl_h << endl << crui_h << endl << sub_h << endl << dest_h << endl;
@@ -259,8 +261,8 @@ class game {
             system("CLS");
             cout << "My fleet\n\n";
             print_grid(my, dim);
-            /*cout << "\n\nOpponents\' fleet\n\n";
-            print_grid(enemy, dim);*/
+            cout << "\n\nOpponents\' fleet\n\n";
+            print_grid(enemy, dim);
             cout << "\n\nI_Fire\n\n";
             print_grid(i_fire, dim);
             /*cout << "\n\nEnemy_Fires\n\n";
@@ -311,6 +313,8 @@ class game {
         }
 
         int fire(int x, int y) {    //returns 0 if succeed, 1 if not
+            if (enemy[x][y] == '*' || enemy[x][y] == 'X')
+                return 1;
             if (enemy[x][y] != ' ') {
                 switch (enemy[x][y]) {
                 case 'A':
@@ -332,9 +336,12 @@ class game {
                     break;
                 }
                 i_fire[x][y] = 'X';
+                enemy[x][y] = 'X';
             }
-            else 
+            else {
                 i_fire[x][y] = '*';
+                enemy[x][y] = '*';
+            }
             return 0;
         }
 
@@ -417,6 +424,8 @@ int main(void) {
     gm.printAllBoards();
     gm.setEnemy();
     gm.printAllBoards();
+    ofstream log("log.txt");
+    log << "Your moves:\n";
     
     string inp;
     int x, y;
@@ -425,9 +434,13 @@ int main(void) {
         cin >> inp;
         x = inp[0] - 97;
         y = inp[1] - 49;
-        if ((inp[0]-113) == 0) break; //Press q to quit
+        if ((inp[0]-113) == 0 && inp.length() == 1) break; //Press q to quit
+        if (inp.length() < 2 && inp.length()>3) continue;
+        if (x<0 || x>9 || y<0 || y>9) continue;
         if (inp.length() == 3) y = 9;
-        gm.fire(x, y);
+
+        log << "(" << x << ", " << y << ")\n";
+        if (gm.fire(x, y) == 1) continue;
         while (gm.enemy_fire()) {};
         gm.printAllBoards();
         W = gm.checkWinner();
@@ -440,6 +453,7 @@ int main(void) {
             Sleep(3000);
             break;
         }
-        //gm.printHealth();
+        gm.printHealth();
     }
+    log.close();
 }
