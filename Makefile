@@ -1,7 +1,7 @@
 CFLAGS =
 EXEC = exc
 ARGS =
-OBJ = main.o
+OBJ = main.o core_gameplay.o manual_moves.o ai_moves.o print_ui.o
 
 $(EXEC): $(OBJ)
 	gcc $(OBJ) -o $(EXEC) $(CFLAGS)
@@ -9,17 +9,11 @@ $(EXEC): $(OBJ)
 val: $(EXEC)
 	valgrind --leak-check=full --show-leak-kinds=all --trace-children=yes ./$(EXEC) $(ARGS)
 
-# reader: $(READEROBJ) 
-# 	gcc $(READEROBJ) -o reader $(CFLAGS)
+clean:
+	rm -f $(OBJ) $(EXEC)
 
-# write: $(WRITEOBJ) 
-# 	gcc $(WRITEOBJ) -o write $(CFLAGS)
+run:
+	make --no-print-directory
+	./$(EXEC) $(ARGS)
 
-# all: $(EXEC) reader write
 
-# clean:
-# 	rm -f $(OBJ) $(READEROBJ) $(WRITEOBJ) $(EXEC) reader write
-
-# run:
-# 	make all --no-print-directory
-# 	./$(EXEC) $(ARGS)
