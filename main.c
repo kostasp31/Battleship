@@ -106,7 +106,95 @@ void print_board(Board* board) {
   }
 }
 
-int place_ship(Board* board, int ship_len, char* position, char orientation) {
+void print_both_boards_debug(Player* player1, Player* player2) {
+  printf("  \t\t%s fleet  \t\t\t\t\t%s fleet\n", player1->name, player2->name);
+  for (int b=0; b<2; b++) {
+    printf("   ");
+    for (int j=0; j<BOARD_SIZE; j++) {
+      (j == BOARD_SIZE - 1) ? (b == 0) ? printf("  %c  \t", j + 65) :  printf("  %c  \n", j + 65) : printf("  %c ", j + 65);
+    }
+  }
+  for (int i=0; i<BOARD_SIZE; i++) {
+    for (int b=0; b<2; b++) {
+      for (int j=0; j<BOARD_SIZE; j++) {
+        (j == 0) ? printf("   +---") : (j == BOARD_SIZE - 1) ? (b == 0) ? printf("+---+\t") : printf("+---+\n") : printf("+---");
+      }
+    }
+
+    for (int b=0; b<2; b++) {
+      printf("%2d ", i+1);
+      for (int j=0; j<BOARD_SIZE; j++) {
+        printf("| ");
+
+        Cell_Type type = (b == 0) ? player1->board->board[i][j].type : player2->board->board[i][j].type;
+        int bombed = (b == 0) ? player1->board->board[i][j].bombed : player2->board->board[i][j].bombed;
+    
+        if (type == SEA) {
+          bombed ? printf(ANSI_COLOR_YELLOW) : printf(ANSI_COLOR_CYAN);
+          bombed ? printf("*") : printf(" ");
+        } else {
+          bombed ? printf(ANSI_COLOR_RED) : printf(ANSI_COLOR_GREEN);
+          printf("V");
+        }
+        printf(ANSI_COLOR_RESET);
+
+        (j == BOARD_SIZE - 1) ? (b == 0) ? printf(" |\t") : printf(" |\n") : printf(" ");
+      }
+    }
+  }
+
+  for (int b=0; b<2; b++) {
+    for (int j=0; j<BOARD_SIZE; j++) {
+      (j == 0) ? printf("   +---") : (j == BOARD_SIZE - 1) ? (b == 0) ? printf("+---+\t") : printf("+---+\n\n") : printf("+---");
+    }
+  }
+}
+
+void print_both_boards_for_player(Player* player1, Player* player2) {
+  printf("  \t\t%s fleet  \t\t\t\t\t%s fleet\n", player1->name, player2->name);
+  for (int b=0; b<2; b++) {
+    printf("   ");
+    for (int j=0; j<BOARD_SIZE; j++) {
+      (j == BOARD_SIZE - 1) ? (b == 0) ? printf("  %c  \t", j + 65) :  printf("  %c  \n", j + 65) : printf("  %c ", j + 65);
+    }
+  }
+  for (int i=0; i<BOARD_SIZE; i++) {
+    for (int b=0; b<2; b++) {
+      for (int j=0; j<BOARD_SIZE; j++) {
+        (j == 0) ? printf("   +---") : (j == BOARD_SIZE - 1) ? (b == 0) ? printf("+---+\t") : printf("+---+\n") : printf("+---");
+      }
+    }
+
+    for (int b=0; b<2; b++) {
+      printf("%2d ", i+1);
+      for (int j=0; j<BOARD_SIZE; j++) {
+        printf("| ");
+
+        Cell_Type type = (b == 0) ? player1->board->board[i][j].type : player2->board->board[i][j].type;
+        int bombed = (b == 0) ? player1->board->board[i][j].bombed : player2->board->board[i][j].bombed;
+    
+        if (type == SEA) {
+          bombed ? printf(ANSI_COLOR_YELLOW) : printf(ANSI_COLOR_CYAN);
+          bombed ? printf("*") : printf(" ");
+        } else {
+          bombed ? printf(ANSI_COLOR_RED) : printf(ANSI_COLOR_GREEN);
+          (b == 0) ? printf("V") : bombed ? printf("*") : printf(" ");
+        }
+        printf(ANSI_COLOR_RESET);
+
+        (j == BOARD_SIZE - 1) ? (b == 0) ? printf(" |\t") : printf(" |\n") : printf(" ");
+      }
+    }
+  }
+
+  for (int b=0; b<2; b++) {
+    for (int j=0; j<BOARD_SIZE; j++) {
+      (j == 0) ? printf("   +---") : (j == BOARD_SIZE - 1) ? (b == 0) ? printf("+---+\t") : printf("+---+\n\n") : printf("+---");
+    }
+  }
+}
+
+int place_ship(Board* board, int ship_len, char* position, char orientation, int log) {
   // parse position x and y
   char col_char = position[0];
   int col_int = col_char - 65;
@@ -120,18 +208,18 @@ int place_ship(Board* board, int ship_len, char* position, char orientation) {
   free(row_str);
   
   if (row_int >= BOARD_SIZE || col_int >= BOARD_SIZE) {
-    printf("ERROR [Ship out of bounds]\n");
+    if (log) printf(ANSI_COLOR_RED "ERROR [Ship out of bounds]\n" ANSI_COLOR_RESET);
     return -1;
   }
 
   if (orientation == 'H') {
     for (int i=col_int; i<col_int + ship_len; i++) {
       if (i >= BOARD_SIZE) {
-        printf("ERROR [Ship out of bounds]\n");
+        if (log) printf(ANSI_COLOR_RED "ERROR [Ship out of bounds]\n" ANSI_COLOR_RESET);
         return -1;  
       }
       if (board->board[row_int][i].type == SHIP) {
-        printf("ERROR [Ships collide]\n");
+        if (log) printf(ANSI_COLOR_RED "ERROR [Ships collide]\n" ANSI_COLOR_RESET);
         return -2;     
       }
     }
@@ -141,11 +229,11 @@ int place_ship(Board* board, int ship_len, char* position, char orientation) {
   } else if (orientation == 'V') {
     for (int i=row_int; i<row_int + ship_len; i++) {
       if (i >= BOARD_SIZE) {
-        printf("ERROR [Ship out of bounds]\n");
+        if (log) printf(ANSI_COLOR_RED "ERROR [Ship out of bounds]\n" ANSI_COLOR_RESET);
         return -1;  
       }
       if (board->board[i][col_int].type == SHIP) {
-        printf("ERROR [Ships collide]\n");
+        if (log) printf(ANSI_COLOR_RED "ERROR [Ships collide]\n" ANSI_COLOR_RESET);
         return -2;     
       }
     }
@@ -157,7 +245,7 @@ int place_ship(Board* board, int ship_len, char* position, char orientation) {
   return 0;
 }
 
-int place_bomb(Player* player, Player* enemy, char* position) {
+int place_bomb(Player* player, Player* enemy, char* position, int log) {
   // parse position x and y
   char col_char = position[0];
   int col_int = col_char - 65;
@@ -171,13 +259,13 @@ int place_bomb(Player* player, Player* enemy, char* position) {
   free(row_str);
   
   if (row_int >= BOARD_SIZE || col_int >= BOARD_SIZE) {
-    printf("ERROR [Bomb falls out of bounds]\n");
+    if (log) printf(ANSI_COLOR_RED "ERROR [Bomb falls out of bounds: %d, %d]\n" ANSI_COLOR_RESET, row_int, col_int);
     return -1;
   }
 
   Cell *target = &enemy->board->board[row_int][col_int];
   if (target->bombed) {
-    printf("ERROR [You\'ve already bombed this position]\n");
+    if (log) printf(ANSI_COLOR_RED "ERROR [You\'ve already bombed this position: %d, %d]\n" ANSI_COLOR_RESET, row_int, col_int);
     return -2;  
   }
 
@@ -190,75 +278,135 @@ int place_bomb(Player* player, Player* enemy, char* position) {
 
 int check_winner(Player** players) {
   for (int player = 0; player<2; player++) {
-    int won = 1;
+    int lost = 1;
     for (int i=0; i<BOARD_SIZE; i++) {
-      if (!won) break;
+      if (!lost) break;
       for (int j=0; j<BOARD_SIZE; j++) {
-        if (players[player]->board->board[i][j].type == SHIP && !players[player]->board->board[i][j].bombed)
-          won = 0;
+        if (players[player]->board->board[i][j].type == SHIP && !players[player]->board->board[i][j].bombed) {
+          lost = 0;
+          break;
+        }
       }
     }
-    if (won) return player + 1;
+    if (lost) return player + 1;
   }
-  return 0;
+  return -1;
 }
 
+void auto_place_ship(Board* board, int ship_length) {
+  int x, y;
+  char x_char, orientation;
+  int res = -1;
+  char* position = malloc(10 * sizeof(char));
+  do {
+    x = (rand() % BOARD_SIZE);
+    x_char = x + 65;
+    y = (rand() % BOARD_SIZE) + 1;
+    orientation = (rand() % 2 == 0) ? 'H' : 'V';
+    sprintf(position, "%c%d %c", x_char, y, orientation);
+
+    res = place_ship(board, ship_length, position, orientation, 1); // TODO: put 0
+  } while (res < 0);
+  free(position);
+}
+
+void manual_place_ship(Board* board, int ship_length) {
+  char* pos = malloc(3 * sizeof(char));
+  char orient;
+  
+  int res;
+  do {
+    printf("Ship length: %d\n", ship_length);
+    scanf("%s %c[^\n]", pos, &orient);
+    fflush(stdin);
+    res = place_ship(board, ship_length, pos, orient, 1);
+  } while (res < 0);
+  
+  free(pos);
+}
+
+int auto_fire(Player* player, Player* enemy, int (*check_winner)()) {
+  int x, y;
+  char x_char;
+  int res = -1;
+  char* position = malloc(10 * sizeof(char));
+
+  Player* players[2] = { player, enemy };
+  do {
+    x = (rand() % BOARD_SIZE);
+    x_char = x + 65;
+    y = (rand() % BOARD_SIZE) + 1;
+    sprintf(position, "%c%d", x_char, y);
+
+    res = place_bomb(player, enemy, position, 0);
+
+    int ress = check_winner(players);
+    if (ress != -1) break;
+  } while (res < 0);
+  free(position);
+
+  return res;
+}
+
+int manual_fire(Player* player, Player* enemy, int (*check_winner)()) {
+  int res;
+  char* pos = malloc(3 * sizeof(char));
+  do {
+    scanf("%s[^\n]", pos);
+    fflush(stdin);
+    res = place_bomb(player, enemy, pos, 1);
+    printf("%d", res);
+  } while (res < 0);
+  free(pos);
+  return res;
+}
+
+// TODO: smarter AI
 int main() {
   srand(time(NULL));
 
   Board* player1_board = initialize_board();
   Board* player2_board = initialize_board();
 
-  Player* player1 = initialize_player("Kostas", player1_board);
-  Player* player2 = initialize_player("Takis", player2_board);
+  Player* player1 = initialize_player("Computer1", player1_board);
+  Player* player2 = initialize_player("Computer2", player2_board);
   Player* players[2] = { player1, player2 };
 
+
   printf("Place your ships!\n");
+  int ships[] = { 5, 4, 3, 3, 2 };
   for (int i=0; i<2; i++) {
     printf("%s places their ships.\n", players[i]->name);
-    int ships[] = { 5, 4, 3, 3, 2 };
-    for (int j=0; j<1; j++) { // j < 5
-      
-      char* pos = malloc(3 * sizeof(char));
-      char orient;
-      
-      int res;
-      do {
-        printf("Ship length: %d\n", ships[j]);
-        scanf("%s %c[^\n]", pos, &orient);
-        fflush(stdin);
-        res = place_ship(players[i]->board, ships[j], pos, orient);
-      } while (res < 0);
-
-      free(pos);
-      print_board(players[i]->board);
+    for (int j=0; j<5; j++) { // j < 5
+      if (strncmp(players[i]->name, "Computer", 8) == 0) {
+        auto_place_ship(players[i]->board, ships[j]);
+      } else {
+        manual_place_ship(players[i]->board, ships[j]);
+      }
     }
   }
 
   int turn = rand() % 2;
   while (1) {
     printf("%s plays.\n", players[turn]->name);
-    char* pos = malloc(3 * sizeof(char));
+
     int res;
-    do {
-      scanf("%s[^\n]", pos);
-      fflush(stdin);
-      res = place_bomb(players[turn], players[1-turn], pos);
-      printf("%d", res);
-    } while (res < 0);
-    free(pos);
+    int winner;
+    if (strncmp(players[turn]->name, "Computer", 8) == 0) {
+      res = auto_fire(players[turn], players[1 - turn], check_winner);
+    } else {
+      res = manual_fire(players[turn], players[1 - turn], check_winner);
+    }
     
-    print_board(players[0]->board);
-    print_board(players[1]->board);
-
-    if (res == 1) turn = turn;
-    else turn = 1 - turn;
-
-    int winner = check_winner(players);
-    if (winner) {
-      printf("================= %s WINS!!!! =================\n", players[winner-1]->name);
+    print_both_boards_for_player(players[turn], players[1 - turn]);
+    winner = check_winner(players) - 1;
+    if (winner >= 0) {
+      printf("================= %s WINS!!!! =================\n", players[1 - winner]->name);
       break;
     }
+    
+    if (res == 1) turn = turn;
+    else turn = 1 - turn;
   }
 
   destroy_board(player1_board);
