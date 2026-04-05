@@ -1,7 +1,7 @@
 CFLAGS =
 EXEC = exc
 ARGS =
-OBJ = main.o core_gameplay.o manual_moves.o ai_moves.o print_ui.o
+OBJ = main.o core_gameplay.o manual_moves.o ai_moves.o print_ui.o utils.o
 
 $(EXEC): $(OBJ)
 	gcc $(OBJ) -o $(EXEC) $(CFLAGS)
