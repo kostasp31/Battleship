@@ -2,7 +2,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+
+#include <ncurses.h>
 #include "types.h"
+#include "utils.h"
+
+//////////////////// STANDARD PRINTING FUNCTIONS ////////////////////
 
 void print_board(Board* board) {
   printf("   ");
@@ -124,4 +129,11 @@ void print_both_boards_for_player(Player* player1, Player* player2) {
       (j == 0) ? printf("   +---") : (j == BOARD_SIZE - 1) ? (b == 0) ? printf("+---+\t") : printf("+---+\n\n") : printf("+---");
     }
   }
+}
+
+//////////////////// NCURSES PRINTING FUNCTIONS ////////////////////
+
+void print_ascii_art(int startx, int starty, const int ascii_dim[], const char* art[]) {
+  for (int i = 0; i < ascii_dim[1]; i++)
+    mvprintw(starty + i, startx, "%s", art[i]);
 }

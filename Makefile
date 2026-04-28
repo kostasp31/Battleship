@@ -1,4 +1,4 @@
-CFLAGS =
+CFLAGS = -lncurses
 EXEC = exc
 ARGS =
 OBJ = main.o core_gameplay.o manual_moves.o ai_moves.o print_ui.o utils.o
