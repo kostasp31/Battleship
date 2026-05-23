@@ -133,7 +133,48 @@ void print_both_boards_for_player(Player* player1, Player* player2) {
 
 //////////////////// NCURSES PRINTING FUNCTIONS ////////////////////
 
-void print_ascii_art(int startx, int starty, const int ascii_dim[], const char* art[]) {
-  for (int i = 0; i < ascii_dim[1]; i++)
-    mvprintw(starty + i, startx, "%s", art[i]);
+// print board centered on window x and y
+// return array of [y, x] coordinates
+void print_board_ncurses(WINDOW* win, int board_win_height, int board_win_width, Board* board) {
+  int board_height = (2 * BOARD_SIZE) + 1 + 1; // 2*board_size:  
+  int board_width = (4 * BOARD_SIZE) + ((BOARD_SIZE / 10) + 1) + 1;
+  int board_y_cursor = (int) ((board_win_height / 2) - (board_height / 2));
+  int board_x_cursor = (int) ((board_win_width / 2) - (board_width / 2));
+
+  wmove(win, board_y_cursor, board_x_cursor);
+  wprintw(win, "   ");
+  for (int j=0; j<BOARD_SIZE; j++) {
+    wprintw(win, "  %c ", j + 65);
+    if (j == BOARD_SIZE - 1) wmove(win, ++board_y_cursor, board_x_cursor);
+  }
+  for (int i=0; i<BOARD_SIZE; i++) {
+    for (int j=0; j<BOARD_SIZE; j++) {
+      (j == 0) ? wprintw(win, "   +---") : (j == BOARD_SIZE - 1) ? wprintw(win, "+---+") : wprintw(win, "+---");
+      if (j == BOARD_SIZE - 1) wmove(win, ++board_y_cursor, board_x_cursor);
+    }
+
+    wprintw(win, "%2d ", i+1);
+    for (int j=0; j<BOARD_SIZE; j++) {
+      wprintw(win, "| ");
+
+      Cell_Type type = board->board[i][j].type;
+      int bombed = board->board[i][j].bombed;
+  
+      if (type == SEA) {
+        bombed ? wprintw(win, "*") : wprintw(win, " ");
+      } else {
+        wprintw(win, "V");
+      }
+
+      (j == BOARD_SIZE - 1) ? wprintw(win, " |") : wprintw(win, " ");
+      if (j == BOARD_SIZE - 1) wmove(win, ++board_y_cursor, board_x_cursor);
+    }
+  }
+  for (int j=0; j<BOARD_SIZE; j++) {
+    (j == 0) ? wprintw(win, "   +---") : (j == BOARD_SIZE - 1) ? wprintw(win, "+---+") : wprintw(win, "+---");
+    if (j == BOARD_SIZE - 1) wmove(win, ++board_y_cursor, board_x_cursor);
+  }
+
+  wrefresh(win);
+  return;
 }

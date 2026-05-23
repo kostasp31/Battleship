@@ -23,11 +23,10 @@
 // TODO: use arrows to place ships, bombs (ncurses)
 int main() {
   initscr();
-  cbreak(); // Disable line buffering (read input immediately)
   noecho(); // Don't echo input characters to the screen
   keypad(stdscr, TRUE); // Enable special keys (arrow keys, F1-F12, etc.)
   curs_set(1);  // 0 for invisible cursor, 1 visible
-  raw();
+  cbreak(); // respect Ctrl C, Ctrl Z signals (else use raw())
 
   int screen_x, screen_y; // terminal dimensions
   MEVENT event;
@@ -41,6 +40,9 @@ int main() {
 
   getmaxyx(stdscr, screen_y, screen_x); // get terminal dimensions
   title_win = newwin(screen_y, screen_x, 0, 0);
+  keypad(title_win, TRUE);      
+  box(title_win, 0 , 0);	
+  wrefresh(title_win);
   
   srand(time(NULL));
   Board* player1_board = initialize_board();
@@ -54,44 +56,40 @@ int main() {
   extern const char *ship_art[];
   extern const char *title_art[];
   extern const char *start_button_art[];
-  extern const char *starting1_message_art[];
-  extern const char *starting2_message_art[];
-  extern const char *starting3_message_art[];
+  extern const char *starting_message_art[3][8];
   extern const char* place_your_fleet_art[];
   extern const int ship_art_dim[];
   extern const int title_art_dim[];
   extern const int start_button_art_dim[];
-  extern const int starting1_message_art_dim[];
-  extern const int starting2_message_art_dim[];
-  extern const int starting3_message_art_dim[];
+  extern const int starting_message_art_dim[];
   extern const int place_your_fleet_art_dim[];
 
   // print warship
   int starty = (int) (0.1 * screen_y);
   int startx = (int) (screen_x / 2) - (ship_art_dim[0] / 2);
   for (int i = 0; i < ship_art_dim[1]; i++) {
-    mvprintw(starty + i, startx, "%s", ship_art[i]);
+    mvwprintw(title_win, starty + i, startx, "%s", ship_art[i]);
   }
   
   // print title
   starty += 13;
   startx = (int) (screen_x / 2) - (title_art_dim[0] / 2);
   for (int i = 0; i < title_art_dim[1]; i++) {
-    mvprintw(starty + i, startx, "%s", title_art[i]);
+    mvwprintw(title_win, starty + i, startx, "%s", title_art[i]);
   }
 
   // print start button
   starty = (int) screen_y - (0.15 * screen_y);
   startx = (int) (screen_x / 2) - (start_button_art_dim[0] / 2);
   for (int i = 0; i < start_button_art_dim[1]; i++) {
-    mvprintw(starty + i, startx, "%s", start_button_art[i]);
+    mvwprintw(title_win, starty + i, startx, "%s", start_button_art[i]);
   }
   wrefresh(title_win);
-
+  
   int ch;
   int in_title_screen = 1;
   while (in_title_screen) {
-    ch = getch();
+    ch = wgetch(title_win);
     if (ch == KEY_MOUSE) {
       if (getmouse(&event) == OK) {
         if (event.bstate & BUTTON1_CLICKED) {
@@ -108,72 +106,68 @@ int main() {
   }
 
   wclear(title_win);
+  // box(title_win, 0, 0);
 
-  startx = (int) (screen_x / 2) - (starting1_message_art_dim[0] / 2);
-  starty = (int) (screen_y / 2) - (starting1_message_art_dim[1] / 2);
-  for (int i = 0; i < starting1_message_art_dim[1]; i++) {
-    mvprintw(starty + i, startx, "%s", starting1_message_art[i]);
-  }
-  wrefresh(title_win);
-  refresh();
-  sleep_ms(350);
+  // startx = (int) (screen_x / 2) - (starting_message_art_dim[0] / 2);
+  // starty = (int) (screen_y / 2) - (starting_message_art_dim[1] / 2);
+  // for (int iter = 0; iter< 3; iter++) {
+  //   for (int i = 0; i < starting_message_art_dim[1]; i++) {
+  //     mvwprintw(title_win, starty + i, startx, "%s", starting_message_art[iter][i]);
+  //   }
+  //   wrefresh(title_win);
+  //   sleep_ms(350);
+  // }
 
-  for (int i = 0; i < starting1_message_art_dim[1]; i++) {
-    mvprintw(starty + i, startx, "%s", starting2_message_art[i]);
-  }
-  wrefresh(title_win);
-  refresh();
-  sleep_ms(350);
+  // startx = (int) (screen_x / 2) - (place_your_fleet_art_dim[0] / 2);
+  // starty = (int) (screen_y / 2) - (place_your_fleet_art_dim[1] / 2);
+  // for (int i = 0; i < starting_message_art_dim[1]; i++) {
+  //   mvwprintw(title_win, starty + i, startx, "%s", place_your_fleet_art[i]);
+  // }
+  // wclear(title_win);
+  // wrefresh(title_win);
 
-  for (int i = 0; i < starting1_message_art_dim[1]; i++) {
-    mvprintw(starty + i, startx, "%s", starting3_message_art[i]);
-  }
-  wrefresh(title_win);
-  refresh();
-  sleep_ms(350);
-
-  startx = (int) (screen_x / 2) - (place_your_fleet_art_dim[0] / 2);
-  starty = (int) (screen_y / 2) - (place_your_fleet_art_dim[1] / 2);
-  for (int i = 0; i < starting1_message_art_dim[1]; i++) {
-    mvprintw(starty + i, startx, "%s", place_your_fleet_art[i]);
-  }
-  wrefresh(title_win);
-
-  getch();
-
-  wclear(title_win);
-  wrefresh(title_win);
   wdelch(title_win);
 
   // delete title window and create new regions 
   // +--------+---------------+
   // |  LOGS  |     BOARDS    |
   // +--------+---------------+
-  log_win = newwin(20, 20, 0, 0);
-  board_win = newwin(screen_y,  (int) screen_x * 0.66, 0, (int) screen_x * 0.33 + 1);
-
-  box(log_win, 20, 20);
+  int log_win_width = (int) (0.2 * screen_x);
+  int log_win_height = screen_y;
+  log_win = newwin(log_win_height, log_win_width, 0, 0);
+  keypad(log_win, TRUE); 
+  box(log_win, 0, 0);
   wrefresh(log_win);
-  refresh();
 
-  getch();
+  int board_win_width = screen_x - log_win_width;
+  int board_win_height = screen_y;
+  board_win = newwin(board_win_height, board_win_width, 0, log_win_width);
+  keypad(board_win, TRUE); 
+  box(board_win, 0, 0);
 
-  // int ships[] = { 5, 4, 3, 3, 2 };
-  // for (int i=0; i<2; i++) {
-  //   clear();
-  //   for (int j=0; j<5; j++) {
-  //     if (strncmp(players[i]->name, "Computer", 8) == 0) {
-  //       clear();
-  //       printw("=> " ANSI_COLOR_MAGENTA "%s" ANSI_COLOR_RESET " places their ships...\n\n", players[i]->name);
-  //       auto_place_ship(players[i]->board, ships[j]);
-  //     } else {
-  //       clear();
-  //       printw("=> " ANSI_COLOR_MAGENTA "%s" ANSI_COLOR_RESET " places their ships.\n\n", players[i]->name);
-  //       print_board(players[i]->board);
-  //       manual_place_ship(players[i]->board, ships[j]);
-  //     }
-  //   }
-  // }
+  wgetch(board_win);
+
+  const int init_dim[2] = {4, 9};
+  int ships[] = { 5, 4, 3, 3, 2 };
+  for (int i=0; i<2; i++) {
+    clear();
+    for (int j=0; j<5; j++) {
+      if (strncmp(players[i]->name, "Computer", 8) == 0) {
+        auto_place_ship(players[i]->board, ships[j]);
+      } else {
+        print_board_ncurses(board_win, board_win_height, board_win_width, player1_board);
+        ch = wgetch(board_win);
+        if (ch == KEY_MOUSE) {
+          if (getmouse(&event) == OK) {
+            if (event.bstate & BUTTON1_CLICKED) {
+              mvwprintw(board_win, 1, 1, "Placed ship at: (%d, %d)", event.x - init_dim[1], event.y - init_dim[0]);
+              wrefresh(board_win);
+            }
+          }
+        }
+      }
+    }
+  }
 
   // printw(ANSI_COLOR_GREEN "=================== Ships placed! ==================\n\n" ANSI_COLOR_RESET);
   // sleep_ms(DELAY);
