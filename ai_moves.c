@@ -8,17 +8,13 @@ void auto_place_ship(Board* board, int ship_length) {
   int x, y;
   char x_char, orientation;
   int res = -1;
-  char* position = malloc(10 * sizeof(char));
   do {
     x = (rand() % BOARD_SIZE);
-    x_char = x + 65;
     y = (rand() % BOARD_SIZE) + 1;
     orientation = (rand() % 2 == 0) ? 'H' : 'V';
-    sprintf(position, "%c%d %c", x_char, y, orientation);
 
-    res = place_ship(board, ship_length, position, orientation, 0);
+    res = place_ship(board, ship_length, NULL, 0, x, y, orientation, 0);
   } while (res < 0);
-  free(position);
 }
 
 int auto_fire(Player* player, Player* enemy, int (*check_winner)()) {

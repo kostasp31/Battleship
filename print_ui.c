@@ -135,11 +135,14 @@ void print_both_boards_for_player(Player* player1, Player* player2) {
 
 // print board centered on window x and y
 // return array of [y, x] coordinates
-void print_board_ncurses(WINDOW* win, int board_win_height, int board_win_width, Board* board) {
+void print_board_ncurses(WINDOW* win, int board_win_height, int board_win_width, Board* board, int* top_left_corner_y, int* top_left_corner_x) {
   int board_height = (2 * BOARD_SIZE) + 1 + 1; // 2*board_size:  
   int board_width = (4 * BOARD_SIZE) + ((BOARD_SIZE / 10) + 1) + 1;
   int board_y_cursor = (int) ((board_win_height / 2) - (board_height / 2));
   int board_x_cursor = (int) ((board_win_width / 2) - (board_width / 2));
+
+  *top_left_corner_y = board_y_cursor + 1;
+  *top_left_corner_x = board_x_cursor + ((BOARD_SIZE / 10) + 1) + 1;
 
   wmove(win, board_y_cursor, board_x_cursor);
   wprintw(win, "   ");

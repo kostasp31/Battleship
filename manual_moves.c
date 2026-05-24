@@ -25,7 +25,7 @@ void manual_place_ship(Board* board, int ship_length) {
     printf("Ship length: " ANSI_COLOR_CYAN "%d" ANSI_COLOR_RESET ". Position => ", ship_length);
     scanf("%s %c[^\n]", pos, &orient);
     fflush(stdin);
-    res = place_ship(board, ship_length, pos, orient, 1);
+    res = place_ship(board, ship_length, pos, 1, 0, 0, orient, 1);
   } while (res < 0);
   
   free(pos);

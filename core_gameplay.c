@@ -45,19 +45,26 @@ void destroy_board(Board* board) {
 }
 
 
-int place_ship(Board* board, int ship_len, char* position, char orientation, int log) {
-  // parse position x and y
-  char col_char = position[0];
-  int col_int = col_char - 65;
-  
-  int pos_size = strlen(position);
-  char* row_str = malloc((pos_size - 1) * sizeof(char));
-  for (int i=0; i<pos_size - 1; i++) {
-    row_str[i] = position[i+1];
+int place_ship(Board* board, int ship_len, char* position, int semantic_position, int x, int y, char orientation, int log) {
+  int col_int = 0, row_int = 0;
+
+  if (semantic_position) {
+    // parse position x and y
+    char col_char = position[0];
+    col_int = col_char - 65;
+    
+    int pos_size = strlen(position);
+    char* row_str = malloc((pos_size - 1) * sizeof(char));
+    for (int i=0; i<pos_size - 1; i++) {
+      row_str[i] = position[i+1];
+    }
+    row_int = atoi(row_str) - 1;
+    free(row_str);
+  } else {
+    col_int = x;
+    row_int = y;
   }
-  int row_int = atoi(row_str) - 1;
-  free(row_str);
-  
+    
   if (row_int >= BOARD_SIZE || col_int >= BOARD_SIZE) {
     if (log) printf(ANSI_COLOR_RED "ERROR [Ship out of bounds]\n" ANSI_COLOR_RESET);
     return -1;
