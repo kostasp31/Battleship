@@ -9,6 +9,8 @@
 #include "print_ui.h"
 #include "utils.h"
 
+#include "ncurses_moves.h"
+
 #include "ascii_art.h"
 
 #include <ncurses.h>
@@ -56,13 +58,11 @@ int main() {
   extern const char *ship_art[];
   extern const char *title_art[];
   extern const char *start_button_art[];
-  extern const char *continue_button_art[];
   extern const char *starting_message_art[3][8];
   extern const char* place_your_fleet_art[];
   extern const int ship_art_dim[];
   extern const int title_art_dim[];
   extern const int start_button_art_dim[];
-  extern const int continue_button_art_dim[];
   extern const int starting_message_art_dim[];
   extern const int place_your_fleet_art_dim[];
 
@@ -117,7 +117,7 @@ int main() {
       mvwprintw(title_win, starty + i, startx, "%s", starting_message_art[iter][i]);
     }
     wrefresh(title_win);
-    sleep_ms(350);
+    sleep_ms(150);
   }
 
   startx = (int) (screen_x / 2) - (place_your_fleet_art_dim[0] / 2);
@@ -127,13 +127,13 @@ int main() {
   }
   wclear(title_win);
   wrefresh(title_win);
-
   wdelch(title_win);
 
   // delete title window and create new regions 
   // +--------+---------------+
   // |  LOGS  |     BOARDS    |
   // +--------+---------------+
+  // log window: 20%
   int log_win_width = (int) (0.2 * screen_x);
   int log_win_height = screen_y;
   log_win = newwin(log_win_height, log_win_width, 0, 0);
@@ -141,15 +141,14 @@ int main() {
   box(log_win, 0, 0);
   wrefresh(log_win);
 
+  // board window: 80%
   int board_win_width = screen_x - log_win_width;
   int board_win_height = screen_y;
   board_win = newwin(board_win_height, board_win_width, 0, log_win_width);
   keypad(board_win, TRUE); 
   box(board_win, 0, 0);
 
-  int top_left_corner_y = 0;
-  int top_left_corner_x = 0;
-
+  // FIRST GAME STAGE: Ship placement. Auto for Computer, using the UI for the user
   char orientation = 'H';
   int ships[] = { 5, 4, 3, 3, 2 };
   for (int i=0; i<2; i++) {
@@ -157,86 +156,19 @@ int main() {
       if (strncmp(players[i]->name, "Computer", 8) == 0) {
         auto_place_ship(players[i]->board, ships[j]);
       } else {
-        int ship_len = ships[j];
-        print_board_ncurses(board_win, board_win_height, board_win_width, player1_board, &top_left_corner_y, &top_left_corner_x);
-        if (!j) mvwprintw(board_win, 1, 1, "Place your first ship   ");
-        mvwprintw(board_win, 2, 1, "Orientation: %s", orientation == 'H' ? "Horizontal" : "Vertical  ");
-
-        // ship preview
-        // erase old
-        for (int k=0; k<5; k++) {
-          mvwprintw(board_win, k + 3, 1, " ");
-          mvwprintw(board_win, 3, k + 1, " ");
-        }
-        // new preview
-        for (int k=0; k<ship_len; k++) {
-          if (orientation == 'H') mvwprintw(board_win, 3, k + 1, "V");
-          else mvwprintw(board_win, k + 3, 1, "V");
-        }
-
-        wrefresh(board_win);
-        while (ch = wgetch(board_win)) {
-          if (ch == KEY_MOUSE) {
-            if (getmouse(&event) == OK) {
-              // right click to change orientation
-              if (event.bstate & BUTTON3_CLICKED) {
-                if (orientation == 'H') orientation = 'V';
-                else orientation = 'H';
-                mvwprintw(board_win, 2, 1, "Orientation: %s", orientation == 'H' ? "Horizontal" : "Vertical  ");
-
-                // ship preview
-                // erase old
-                for (int k=0; k<5; k++) {
-                  mvwprintw(board_win, k + 3, 1, " ");
-                  mvwprintw(board_win, 3, k + 1, " ");
-                }
-                // new preview
-                for (int k=0; k<ship_len; k++) {
-                  if (orientation == 'H') mvwprintw(board_win, 3, k + 1, "V");
-                  else mvwprintw(board_win, k + 3, 1, "V");
-                }
-                wrefresh(board_win);
-                continue;
-              }
-              // left click to place ship if valid position
-              else if (event.bstate & BUTTON1_CLICKED) {
-                int norm_y = event.y - top_left_corner_y;
-                int norm_x = event.x - log_win_width - top_left_corner_x;
-                if (norm_y % 2 == 0 || norm_x % 4 == 0) continue;
-  
-                int abs_x = (int) norm_x / 4;
-                int abs_y = (int) norm_y / 2;
-  
-                if (abs_x >= BOARD_SIZE || abs_y >= BOARD_SIZE) continue;
-  
-                const int retVal = place_ship(players[i]->board, ships[j], NULL, 0, abs_x, abs_y, orientation, 0);
-                if (retVal != 0) {
-                  mvwprintw(board_win, 1, 1, "Cant place a ship there");
-                  wrefresh(board_win);
-                  continue;
-                }
-  
-                mvwprintw(board_win, 1, 1, "Placed ship at: (%d, %d)  ", abs_x, abs_y);
-                if (j == 4) print_board_ncurses(board_win, board_win_height, board_win_width, player1_board, &top_left_corner_y, &top_left_corner_x);
-                wrefresh(board_win);
-                break;
-              }
-            }
-          }
-        }
+        ncurses_place_ships(board_win, ships, j, board_win_height, board_win_width, players[i]->board, &orientation, log_win_width, &event);
       }
     }
   }
 
   // continue button
-  starty = (int) screen_y - (0.15 * screen_y);
-  startx = (int) (log_win_width + 2) + (board_win_width / 2) - (continue_button_art_dim[0] / 2);
-  for (int i = 0; i < continue_button_art_dim[1]; i++) {
-    mvwprintw(title_win, starty + i, startx, "%s", continue_button_art[i]);
-  }
+  starty = (int) screen_y - (0.1 * screen_y);
+  startx = (int) (log_win_width + 2) + (board_win_width / 2) - (28 / 2);
+  mvwprintw(title_win, starty, startx, "Press any key to continue...");
   wrefresh(title_win);
   
   wgetch(board_win);
+
   // printw(ANSI_COLOR_GREEN "=================== Ships placed! ==================\n\n" ANSI_COLOR_RESET);
   // sleep_ms(DELAY);
   // clear();
