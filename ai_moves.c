@@ -26,11 +26,9 @@ int auto_fire(Player* player, Player* enemy, int (*check_winner)()) {
   Player* players[2] = { player, enemy };
   do {
     x = (rand() % BOARD_SIZE);
-    x_char = x + 65;
     y = (rand() % BOARD_SIZE) + 1;
-    sprintf(position, "%c%d", x_char, y);
 
-    res = place_bomb(player, enemy, position, 0);
+    res = place_bomb(player, enemy, NULL, 0, x, y, 0);
 
     int ress = check_winner(players);
     if (ress != -1) break;

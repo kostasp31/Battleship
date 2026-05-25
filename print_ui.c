@@ -181,3 +181,71 @@ void print_board_ncurses(WINDOW* win, int board_win_height, int board_win_width,
   wrefresh(win);
   return;
 }
+
+// print both boards from player's 1 perspective
+void print_both_boards_ncurses(WINDOW* win, int board_win_height, int board_win_width, Player* player1, Player* player2, int* top_left_corner_y, int* top_left_corner_x) {
+  int board_height = (2 * BOARD_SIZE) + 1 + 1 + 2; // 2*board_size:  
+  int board_width = 2 * ((4 * BOARD_SIZE) + ((BOARD_SIZE / 10) + 1)) + 7;
+  int board_y_cursor = (int) ((board_win_height / 2) - (board_height / 2));
+  int board_x_cursor = (int) ((board_win_width / 2) - (board_width / 2));
+
+  // *top_left_corner_y = board_y_cursor + 1; 
+  // *top_left_corner_x = 2 * ((4 * BOARD_SIZE) + ((BOARD_SIZE / 10) + 1)) + 1;
+
+  wmove(win, board_y_cursor, board_x_cursor);
+
+  for (int b=0; b<2; b++) {
+    wprintw(win, "   ");
+    for (int j=0; j<BOARD_SIZE; j++) {
+      (j == BOARD_SIZE - 1) ? (b == 0) ? wprintw(win, "  %c  \t", j + 65) :  wprintw(win, "  %c  ", j + 65) : wprintw(win, "  %c ", j + 65);
+      if (j == BOARD_SIZE - 1 && b == 1) wmove(win, ++board_y_cursor, board_x_cursor);
+    }
+  }
+  for (int i=0; i<BOARD_SIZE; i++) {
+    for (int b=0; b<2; b++) {
+      for (int j=0; j<BOARD_SIZE; j++) {
+        // current cursor position is the leftmost top corner position
+        if (i == 0 && j == 0 && b == 1) {
+          getyx(win, *top_left_corner_y, *top_left_corner_x);
+          (*top_left_corner_x) += 3;
+        }
+
+        (j == 0) ? wprintw(win, "   +---") : (j == BOARD_SIZE - 1) ? (b == 0) ? wprintw(win, "+---+\t") : wprintw(win, "+---+") : wprintw(win, "+---");
+        if (j == BOARD_SIZE - 1 && b == 1) wmove(win, ++board_y_cursor, board_x_cursor);
+      }
+    }
+    
+    for (int b=0; b<2; b++) {
+      wprintw(win, "%2d ", i+1);
+      for (int j=0; j<BOARD_SIZE; j++) {
+        wprintw(win, "| ");
+        
+        Cell_Type type = (b == 0) ? player1->board->board[i][j].type : player2->board->board[i][j].type;
+        int bombed = (b == 0) ? player1->board->board[i][j].bombed : player2->board->board[i][j].bombed;
+        
+        if (type == SEA) {
+          // bombed ? wprintw(win, ANSI_COLOR_YELLOW) : wprintw(win, ANSI_COLOR_CYAN);
+          bombed ? wprintw(win, "*") : wprintw(win, " ");
+        } else {
+          // bombed ? wprintw(win, ANSI_COLOR_RED) : wprintw(win, ANSI_COLOR_GREEN);
+          (b == 0) ? wprintw(win, "V") : bombed ? wprintw(win, "*") : wprintw(win, " ");
+        }
+        // wprintw(win, ANSI_COLOR_RESET);
+        
+        (j == BOARD_SIZE - 1) ? (b == 0) ? wprintw(win, " |\t") : wprintw(win, " |") : wprintw(win, " ");
+        if (j == BOARD_SIZE - 1 && b == 1) wmove(win, ++board_y_cursor, board_x_cursor);
+      }
+    }
+  }
+  
+  for (int b=0; b<2; b++) {
+    for (int j=0; j<BOARD_SIZE; j++) {
+      (j == 0) ? wprintw(win, "   +---") : (j == BOARD_SIZE - 1) ? (b == 0) ? wprintw(win, "+---+\t") : wprintw(win, "+---+") : wprintw(win, "+---");
+      if (j == BOARD_SIZE - 1 && b == 1) wmove(win, ++board_y_cursor, board_x_cursor);
+    }
+  }
+  wprintw(win, "  \t\t%s fleet  \t\t\t\t\t%s fleet\n", player1->name, player2->name);
+  
+  wrefresh(win);
+  return;
+}

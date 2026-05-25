@@ -103,18 +103,25 @@ int place_ship(Board* board, int ship_len, char* position, int semantic_position
   return 0;
 }
 
-int place_bomb(Player* player, Player* enemy, char* position, int log) {
-  // parse position x and y
-  char col_char = position[0];
-  int col_int = col_char - 65;
-  
-  int pos_size = strlen(position);
-  char* row_str = malloc((pos_size - 1) * sizeof(char));
-  for (int i=0; i<pos_size - 1; i++) {
-    row_str[i] = position[i+1];
+int place_bomb(Player* player, Player* enemy, char* position, int semantic_position, int x, int y, int log) {
+  int col_int = 0, row_int = 0;
+
+  if (semantic_position) {
+    // parse position x and y
+    char col_char = position[0];
+    int col_int = col_char - 65;
+    
+    int pos_size = strlen(position);
+    char* row_str = malloc((pos_size - 1) * sizeof(char));
+    for (int i=0; i<pos_size - 1; i++) {
+      row_str[i] = position[i+1];
+    }
+    int row_int = atoi(row_str) - 1;
+    free(row_str);
+  } else {
+    col_int = x;
+    row_int = y;
   }
-  int row_int = atoi(row_str) - 1;
-  free(row_str);
   
   if (row_int >= BOARD_SIZE || col_int >= BOARD_SIZE) {
     if (log) printf(ANSI_COLOR_RED "ERROR [Bomb falls out of bounds: %d, %d]\n" ANSI_COLOR_RESET, row_int, col_int);
@@ -129,7 +136,9 @@ int place_bomb(Player* player, Player* enemy, char* position, int log) {
 
   int hit = target->type == SHIP;
   // (hit) ? printf("HIT!\n") : printf("MISSED\n");
-  (hit) ? printf(ANSI_COLOR_CYAN "\t=> * HIT!\n" ANSI_COLOR_RESET) : printf(ANSI_COLOR_RED "\t=> X MISSED!\n" ANSI_COLOR_RESET);
+  if (log) {
+    (hit) ? printf(ANSI_COLOR_CYAN "\t=> * HIT!\n" ANSI_COLOR_RESET) : printf(ANSI_COLOR_RED "\t=> X MISSED!\n" ANSI_COLOR_RESET);
+  }
   target->bombed = 1;
 
   return hit ? 1 : 0;

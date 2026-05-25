@@ -9,5 +9,6 @@ void print_both_boards_debug(Player*, Player*);
 void print_both_boards_for_player(Player*, Player*);
 
 void print_board_ncurses(WINDOW*, int, int, Board*, int*, int*);
+void print_both_boards_ncurses(WINDOW*, int, int, Player*, Player*, int*, int*);
 
 #endif

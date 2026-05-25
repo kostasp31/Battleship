@@ -54,7 +54,7 @@ void ncurses_place_ships(WINDOW* win, int ships[], int j, int board_win_height, 
           int abs_y = (int) norm_y / 2;
 
           // out of board bounds, try again
-          if (abs_x >= BOARD_SIZE || abs_y >= BOARD_SIZE || abs_x < 0 || abs_y == 0) continue;
+          if (abs_x >= BOARD_SIZE || abs_y >= BOARD_SIZE || abs_x < 0 || abs_y < 0) continue;
 
           const int retVal = place_ship(board, ships[j], NULL, 0, abs_x, abs_y, *orientation, 0);
           if (retVal != 0) {
@@ -71,4 +71,8 @@ void ncurses_place_ships(WINDOW* win, int ships[], int j, int board_win_height, 
       }
     }
   }
+}
+
+void ncurses_play_game(WINDOW* win) {
+  ;
 }

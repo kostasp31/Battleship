@@ -10,7 +10,7 @@ int manual_fire(Player* player, Player* enemy, int (*check_winner)()) {
   do {
     scanf("%s[^\n]", pos);
     fflush(stdin);
-    res = place_bomb(player, enemy, pos, 1);
+    res = place_bomb(player, enemy, pos, 1, 0, 0, 1);
   } while (res < 0);
   free(pos);
   return res;
