@@ -10,7 +10,7 @@ void auto_place_ship(Board* board, int ship_length) {
   int res = -1;
   do {
     x = (rand() % BOARD_SIZE);
-    y = (rand() % BOARD_SIZE) + 1;
+    y = (rand() % BOARD_SIZE);
     orientation = (rand() % 2 == 0) ? 'H' : 'V';
 
     res = place_ship(board, ship_length, NULL, 0, x, y, orientation, 0);
@@ -26,7 +26,7 @@ int auto_fire(Player* player, Player* enemy, int (*check_winner)()) {
   Player* players[2] = { player, enemy };
   do {
     x = (rand() % BOARD_SIZE);
-    y = (rand() % BOARD_SIZE) + 1;
+    y = (rand() % BOARD_SIZE);
 
     res = place_bomb(player, enemy, NULL, 0, x, y, 0);
 

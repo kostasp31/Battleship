@@ -1,6 +1,8 @@
 #include "ncurses.h"
 #include "types.h"
 #include "print_ui.h"
+#include "ai_moves.h"
+#include "utils.h"
 #include "core_gameplay.h"
 
 // ship preview
@@ -73,6 +75,65 @@ void ncurses_place_ships(WINDOW* win, int ships[], int j, int board_win_height, 
   }
 }
 
-void ncurses_play_game(WINDOW* win) {
-  ;
+// main game loop, return 0 or 1 for index of winner, negative for failure
+int ncurses_play_game(WINDOW* win, MEVENT* event, Player* players[2], int turn, int board_win_height, int board_win_width, int log_win_width, int delay_ms) {
+  int top_left_corner_y_both = 0;
+  int top_left_corner_x_both = 0;
+  while (1) {
+    int res;
+    int winner;
+    if (strncmp(players[turn]->name, "Computer", 8) == 0) {
+      res = auto_fire(players[turn], players[1 - turn], check_winner);
+      // print_both_boards_ncurses(win, board_win_height, board_win_width, players[0], players[1], &top_left_corner_y_both, &top_left_corner_x_both);
+    } else {
+      print_both_boards_ncurses(win, board_win_height, board_win_width, players[turn], players[1 - turn], &top_left_corner_y_both, &top_left_corner_x_both);
+      int ch = 0;
+      while (ch = wgetch(win)) {
+        if (ch == KEY_MOUSE) {
+          if (getmouse(event) == OK) {
+            // left click to place bomb if valid position
+            if (event->bstate & BUTTON1_CLICKED) {
+              int norm_y = event->y - top_left_corner_y_both;
+              int norm_x = event->x - log_win_width - top_left_corner_x_both;
+              if (norm_y % 2 == 0 || norm_x % 4 == 0) continue;
+
+              int abs_x = (int) norm_x / 4;
+              int abs_y = (int) norm_y / 2;
+
+              // out of board bounds, try again
+              if (abs_x >= BOARD_SIZE || abs_y >= BOARD_SIZE || abs_x < 0 || abs_y < 0) continue;
+
+              res = place_bomb(players[turn], players[1 - turn], NULL, 0, abs_x, abs_y, 0);
+              if (res < 0) {
+                mvwprintw(win, 1, 1, "Cant place a bomb there");
+                wrefresh(win);
+                continue;
+              }
+
+              mvwprintw(win, 1, 1, "Placed ship at: (%d, %d)  ", abs_x, abs_y);
+              print_both_boards_ncurses(win, board_win_height, board_win_width, players[turn], players[1 - turn], &top_left_corner_y_both, &top_left_corner_x_both);
+              wrefresh(win);
+              break;
+            }
+          }
+        }
+      }
+    }
+    
+    // if (strncmp(players[turn]->name, "Computer", 8) != 0)
+    //   clear();
+    // if (strncmp(players[turn]->name, "Computer", 8) != 0) {
+    //   printw("=> " ANSI_COLOR_MAGENTA "%s" ANSI_COLOR_RESET " played.\n\n", players[turn]->name);
+    //   print_both_boards_for_player(players[turn], players[1 - turn]);
+    // }
+
+    winner = check_winner(players) - 1;
+    if (winner >= 0) return winner;
+    
+    if (res == 1) turn = turn;
+    else turn = 1 - turn;
+
+    if (delay_ms) sleep_ms(delay_ms);
+  }
+
 }

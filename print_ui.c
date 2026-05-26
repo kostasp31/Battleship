@@ -144,6 +144,9 @@ void print_board_ncurses(WINDOW* win, int board_win_height, int board_win_width,
   *top_left_corner_y = board_y_cursor + 1;
   *top_left_corner_x = board_x_cursor + ((BOARD_SIZE / 10) + 1) + 1;
 
+  // ship color
+  init_pair(1, COLOR_CYAN, COLOR_BLACK);
+
   wmove(win, board_y_cursor, board_x_cursor);
   wprintw(win, "   ");
   for (int j=0; j<BOARD_SIZE; j++) {
@@ -166,7 +169,9 @@ void print_board_ncurses(WINDOW* win, int board_win_height, int board_win_width,
       if (type == SEA) {
         bombed ? wprintw(win, "*") : wprintw(win, " ");
       } else {
+        wattron(win, COLOR_PAIR(1));
         wprintw(win, "V");
+        wattroff(win, COLOR_PAIR(1));
       }
 
       (j == BOARD_SIZE - 1) ? wprintw(win, " |") : wprintw(win, " ");
@@ -189,8 +194,12 @@ void print_both_boards_ncurses(WINDOW* win, int board_win_height, int board_win_
   int board_y_cursor = (int) ((board_win_height / 2) - (board_height / 2));
   int board_x_cursor = (int) ((board_win_width / 2) - (board_width / 2));
 
-  // *top_left_corner_y = board_y_cursor + 1; 
-  // *top_left_corner_x = 2 * ((4 * BOARD_SIZE) + ((BOARD_SIZE / 10) + 1)) + 1;
+  // ship color
+  init_pair(2, COLOR_RED, COLOR_BLACK);
+  // bombed ship
+  init_pair(3, COLOR_CYAN, COLOR_BLACK);
+  // bomb color
+  init_pair(4, COLOR_YELLOW, COLOR_BLACK);
 
   wmove(win, board_y_cursor, board_x_cursor);
 
@@ -224,13 +233,34 @@ void print_both_boards_ncurses(WINDOW* win, int board_win_height, int board_win_
         int bombed = (b == 0) ? player1->board->board[i][j].bombed : player2->board->board[i][j].bombed;
         
         if (type == SEA) {
-          // bombed ? wprintw(win, ANSI_COLOR_YELLOW) : wprintw(win, ANSI_COLOR_CYAN);
-          bombed ? wprintw(win, "*") : wprintw(win, " ");
+          // bombed sea, yellow in both boards
+          if (bombed) {
+            wattron(win, COLOR_PAIR(4));
+            wprintw(win, "*");
+            wattroff(win, COLOR_PAIR(4));
+          } else {
+            wprintw(win, " ");
+          }
         } else {
-          // bombed ? wprintw(win, ANSI_COLOR_RED) : wprintw(win, ANSI_COLOR_GREEN);
-          (b == 0) ? wprintw(win, "V") : bombed ? wprintw(win, "*") : wprintw(win, " ");
+          // bombed ship: visible in both boards but in opponents only if hit as red
+          if (b == 0) {
+            if (bombed) {
+              wattron(win, COLOR_PAIR(2));
+              wprintw(win, "X");
+              wattroff(win, COLOR_PAIR(2));
+            } else {
+              wprintw(win, "V");
+            }
+          } else {
+            if (bombed) {
+              wattron(win, COLOR_PAIR(2));
+              wprintw(win, "X");
+              wattroff(win, COLOR_PAIR(2));
+            } else {  // opponents ships: dont show
+              wprintw(win, " ");
+            }
+          }
         }
-        // wprintw(win, ANSI_COLOR_RESET);
         
         (j == BOARD_SIZE - 1) ? (b == 0) ? wprintw(win, " |\t") : wprintw(win, " |") : wprintw(win, " ");
         if (j == BOARD_SIZE - 1 && b == 1) wmove(win, ++board_y_cursor, board_x_cursor);
@@ -244,7 +274,7 @@ void print_both_boards_ncurses(WINDOW* win, int board_win_height, int board_win_
       if (j == BOARD_SIZE - 1 && b == 1) wmove(win, ++board_y_cursor, board_x_cursor);
     }
   }
-  wprintw(win, "  \t\t%s fleet  \t\t\t\t\t%s fleet\n", player1->name, player2->name);
+  wprintw(win, "  \t\t%s fleet  \t\t\t\t\t%s fleet", player1->name, player2->name);
   
   wrefresh(win);
   return;

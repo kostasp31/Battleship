@@ -20,15 +20,22 @@
 
 // SEE: https://github.com/mcdaniel/curses_tutorial
 // FOR ART: https://ascii.co.uk/art/battleship
+// https://tldp.org/HOWTO/NCURSES-Programming-HOWTO/
 
 // TODO: smarter AI
 // TODO: use arrows to place ships, bombs (ncurses)
 int main() {
   initscr();
+  if(has_colors() == FALSE) {	
+    endwin();
+    printf("Your terminal does not support color\n");
+    exit(1);
+  }
   noecho(); // Don't echo input characters to the screen
   keypad(stdscr, TRUE); // Enable special keys (arrow keys, F1-F12, etc.)
   curs_set(1);  // 0 for invisible cursor, 1 visible
   cbreak(); // respect Ctrl C, Ctrl Z signals (else use raw())
+	start_color();
 
   int screen_x, screen_y; // terminal dimensions
   MEVENT event;
@@ -192,70 +199,8 @@ int main() {
   mvwprintw(board_win, 0, 1, "%s plays first.", players[turn]->name);
   wrefresh(board_win);
 
-  int top_left_corner_y_both = 0;
-  int top_left_corner_x_both = 0;
-  while (1) {
-    int res;
-    int winner;
-    if (strncmp(players[turn]->name, "Computer", 8) == 0) {
-      res = auto_fire(players[turn], players[1 - turn], check_winner);
-    } else {
-      print_both_boards_ncurses(board_win, board_win_height, board_win_width, players[turn], players[1 - turn], &top_left_corner_y_both, &top_left_corner_x_both);
-      int ch = 0;
-      while (ch = wgetch(board_win)) {
-        if (ch == KEY_MOUSE) {
-          if (getmouse(&event) == OK) {
-            // left click to place bomb if valid position
-            if (event.bstate & BUTTON1_CLICKED) {
-              int norm_y = event.y - top_left_corner_y_both;
-              int norm_x = event.x - log_win_width - top_left_corner_x_both;
-              if (norm_y % 2 == 0 || norm_x % 4 == 0) continue;
-
-              int abs_x = (int) norm_x / 4;
-              int abs_y = (int) norm_y / 2;
-
-              mvwprintw(board_win, 0, 1, "Bomb at: %d %d                   ", abs_x, abs_y);
-              wrefresh(board_win);
-
-              // out of board bounds, try again
-              if (abs_x >= BOARD_SIZE || abs_y >= BOARD_SIZE || abs_x < 0 || abs_y < 0) continue;
-
-
-              res = place_bomb(players[turn], players[1 - turn], NULL, 0, abs_x, abs_y, 0);
-              if (res < 0) {
-                mvwprintw(board_win, 1, 1, "Cant place a bomb there");
-                wrefresh(board_win);
-                continue;
-              }
-
-              mvwprintw(board_win, 1, 1, "Placed ship at: (%d, %d)  ", abs_x, abs_y);
-              print_both_boards_ncurses(board_win, board_win_height, board_win_width, players[turn], players[1 - turn], &top_left_corner_y_both, &top_left_corner_x_both);
-              wrefresh(board_win);
-              break;
-            }
-          }
-        }
-      }
-    }
-    
-    // if (strncmp(players[turn]->name, "Computer", 8) != 0)
-    //   clear();
-    // if (strncmp(players[turn]->name, "Computer", 8) != 0) {
-    //   printw("=> " ANSI_COLOR_MAGENTA "%s" ANSI_COLOR_RESET " played.\n\n", players[turn]->name);
-    //   print_both_boards_for_player(players[turn], players[1 - turn]);
-    // }
-
-    winner = check_winner(players) - 1;
-    if (winner >= 0) {
-      // print("================= " ANSI_COLOR_MAGENTA "%s" ANSI_COLOR_RESET " WINS!!!! =================\n", players[1 - winner]->name);
-      break;
-    }
-    
-    if (res == 1) turn = turn;
-    else turn = 1 - turn;
-
-    // sleep_ms(500);
-  }
+  // main game loop
+  int retVal = ncurses_play_game(board_win, &event, players, turn, board_win_height, board_win_width, log_win_width, 10);
 
   // sleep_ms(DELAY);
   // clear();
