@@ -28,3 +28,18 @@ void sleep_ms(int milliseconds) {
       usleep((milliseconds % 1000) * 1000);
   #endif
 }
+
+// random number smaller than max excepr range
+void put_random_coords_except_area(int max_x, int max_y, int range_x_start, int range_x_end, int range_y_start, int range_y_end, int* res_x, int* res_y) {
+  int rand_x = rand() % max_x;
+  int rand_y = rand() % max_y;
+  while ((rand_x >= range_x_start && rand_x <= range_x_end) && (rand_y >= range_y_start && rand_y <= range_y_end)) {
+    rand_x = rand() % max_x;
+    rand_y = rand() % max_y;
+  };
+
+  *res_x = rand_x;
+  *res_y = rand_y;
+
+  return;
+}
